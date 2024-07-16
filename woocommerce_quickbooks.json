@@ -1,0 +1,462 @@
+{
+  "name": "woocommerce-quickbooks",
+  "nodes": [
+    {
+      "parameters": {
+        "event": "order.updated"
+      },
+      "id": "bdd86b2f-4835-4ee0-9c37-3469a3c54078",
+      "name": "WooCommerce",
+      "type": "n8n-nodes-base.wooCommerceTrigger",
+      "typeVersion": 1,
+      "position": [
+        668.2796777777876,
+        400
+      ],
+      "webhookId": "2fbdb9a8-cddc-483d-abb3-651af7df25d3",
+      "notesInFlow": true,
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "zbO31rOPDuJS9t0H",
+          "name": "WooCommerce account"
+        }
+      },
+      "notes": "Order Updated Webhook"
+    },
+    {
+      "parameters": {
+        "resource": "invoice",
+        "operation": "send",
+        "invoiceId": "={{ $json.Invoice.Id }}",
+        "email": "={{ $('Quickbooks2').item.json.QueryResponse.Customer[0].PrimaryEmailAddr.Address }}"
+      },
+      "id": "ecffe1ce-bbd9-4bce-ab05-a87e98bf6269",
+      "name": "QuickBooks Online2",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [
+        2668.2796777777876,
+        400
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "3Leyhx580HHHgB7U",
+          "name": "QuickBooks Online account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox-quickbooks.api.intuit.com/v3/company/9341452706569233/item",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "operation",
+              "value": "update"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"Id\": \"{{ $('Merge').item.json.Id }}\", \n  \"Name\": \"{{ $('Merge').item.json.Name }}\", \n  \"PurchaseCost\": {{ $('Merge').item.json.PurchaseCost }}, \n  \"QtyOnHand\": {{ $('Merge').item.json.QtyOnHand - $('Merge').item.json.quantity }},\n  \"SyncToken\": \"{{ +$('Merge').item.json.SyncToken }}\",\n  \"IncomeAccountRef\": {\n    \"name\": \"Sales of Product Income\", \n    \"value\": \"79\"\n  }\n}",
+        "options": {}
+      },
+      "id": "2a6b645d-2680-4d52-92ed-046426618b59",
+      "name": "Quickbooks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2288.2796777777876,
+        400
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "3Leyhx580HHHgB7U",
+          "name": "QuickBooks Online account"
+        }
+      },
+      "notes": "update: Inventory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "d67911a1-f8a4-44d1-8c29-6db422a0cd0d",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "30b95ce1-66a3-48a1-ac3f-53da64494559",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        848.2796777777876,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://sandbox-quickbooks.api.intuit.com/v3/company/9341452706569233/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "=select * from Item where Name = '{{ $json.name }}' "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5c5efac9-0c5d-498f-890c-ef722e52c8d8",
+      "name": "Quickbooks1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1268.2796777777876,
+        560
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "3Leyhx580HHHgB7U",
+          "name": "QuickBooks Online account"
+        }
+      },
+      "notes": "query: Item"
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "get",
+        "customerId": "={{ $('WooCommerce').first().json.customer_id }}"
+      },
+      "id": "a9d1cb4a-f13f-41af-a39a-8b80443a82cc",
+      "name": "WooCommerce3",
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        1848.2796777777876,
+        400
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "zbO31rOPDuJS9t0H",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Data Query",
+        "height": 422.6390013651378,
+        "width": 1571.4888043244714,
+        "color": 3
+      },
+      "id": "5cb5e652-4bfb-4f47-a68e-909b11e6613e",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Data Mutation",
+        "height": 290.2199376037969,
+        "width": 614.2129356824393,
+        "color": 6
+      },
+      "id": "532ffccf-1391-45c3-acd3-bf0d9dcbf06b",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2248.2796777777876,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://sandbox-quickbooks.api.intuit.com/v3/company/9341452706569233/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "=select * from Customer where CompanyName = '{{ $('WooCommerce3').item.json.username }}'"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "dadaef9f-1235-469f-b5de-87f532eddfde",
+      "name": "Quickbooks2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2028.2796777777876,
+        400
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "3Leyhx580HHHgB7U",
+          "name": "QuickBooks Online account"
+        }
+      },
+      "notes": "query: Customer"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sandbox-quickbooks.api.intuit.com/v3/company/9341452706569233/invoice",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"Line\": [{\n      \"Amount\": {{ $('Merge').item.json.price }},\n      \"DetailType\": \"SalesItemLineDetail\",\n      \"SalesItemLineDetail\": {\n        \"ItemRef\": {\n          \"value\": \"{{ $('Merge').item.json.Id }}\"\n        },\n        \"Qty\": {{ $('Merge').item.json.quantity }}\n      }\n    }],\n  \"CustomerRef\": {\n    \"value\": \"{{ $('Quickbooks2').all()[0].json.QueryResponse.Customer[0].Id }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "808eef54-2018-415d-90de-b54fa3538f96",
+      "name": "Quickbooks3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2488.2796777777876,
+        400
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "3Leyhx580HHHgB7U",
+          "name": "QuickBooks Online account"
+        }
+      },
+      "notes": "create: Invoice"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "name",
+              "field2": "Name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a5960c90-22e4-4484-90f1-3436da861338",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1648.2796777777876,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "QueryResponse.Item",
+        "options": {}
+      },
+      "id": "3faaf2cb-a5af-480f-8436-9ec416a9c7d4",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1468.2796777777876,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "line_items",
+        "options": {}
+      },
+      "id": "71c20823-dd38-42b3-9007-1963c51c50b5",
+      "name": "Split Out1",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1068.2796777777876,
+        380
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WooCommerce": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quickbooks": {
+      "main": [
+        [
+          {
+            "node": "Quickbooks3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quickbooks1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WooCommerce3": {
+      "main": [
+        [
+          {
+            "node": "Quickbooks2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quickbooks2": {
+      "main": [
+        [
+          {
+            "node": "Quickbooks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quickbooks3": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks Online2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "WooCommerce3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Quickbooks1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "62f0a4a2-3703-4046-ac4c-df4436991140",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cdbf02a9abc5c31af252fac493dde143225021d5c230099accd981962fdc06e"
+  },
+  "id": "IxyHdgFEPrDe6bvs",
+  "tags": []
+}
