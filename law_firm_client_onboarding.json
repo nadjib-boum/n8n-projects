@@ -1,0 +1,234 @@
+{
+  "name": "client-onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "95f4622d-e7a3-4b57-a977-e907e3892b77",
+              "name": "name",
+              "value": "={{ $json.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "fc52820a-e570-4b52-8a5e-8036024ee608",
+              "name": "email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "b0e0ef91-c797-419b-a3e6-139890e6517b",
+              "name": "fitness_goals",
+              "value": "={{ $json['Your Fitness Goals'] }}",
+              "type": "array"
+            },
+            {
+              "id": "8003a75e-3f1f-4304-a25b-c5ace5985d82",
+              "name": "membership_type",
+              "value": "={{ $json['Membership Type'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d97ac537-0b3f-4e4e-8cf1-4ce55bd55912",
+      "name": "Form Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        360,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "person",
+        "name": "={{ $json.name }}",
+        "additionalFields": {
+          "email": [
+            "={{ $json.email }}"
+          ]
+        }
+      },
+      "id": "9675ac17-8cb6-4350-8209-d9e567452f68",
+      "name": "Pipedrive",
+      "type": "n8n-nodes-base.pipedrive",
+      "typeVersion": 1,
+      "position": [
+        580,
+        320
+      ],
+      "credentials": {
+        "pipedriveApi": {
+          "id": "DN11zsSjijglth1P",
+          "name": "Pipedrive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appMVJJ0WWDusUzEE",
+          "mode": "list",
+          "cachedResultName": "Gym Clients Management",
+          "cachedResultUrl": "https://airtable.com/appMVJJ0WWDusUzEE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblBwZv6eiApNtfi8",
+          "mode": "list",
+          "cachedResultName": "Clients",
+          "cachedResultUrl": "https://airtable.com/appMVJJ0WWDusUzEE/tblBwZv6eiApNtfi8"
+        },
+        "options": {}
+      },
+      "id": "8d084001-686d-4e42-80e7-c5b5e0c42b61",
+      "name": "Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        780,
+        320
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "A5v5SYYum5gIfTh5",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "nadjib.dev22@gmail.com",
+          "mode": "list",
+          "cachedResultName": "nadjib.dev22@gmail.com"
+        },
+        "additionalFields": {}
+      },
+      "id": "b9b8614b-d08a-4db7-9d52-f2943c16256d",
+      "name": "Google Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.1,
+      "position": [
+        980,
+        320
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "HF84BdJ2ACcH7gGx",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2ea569b9-00fb-4079-ab4d-e7de2eb51393",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1200,
+        320
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nBr79aUKwQoAjain",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tally",
+        "options": {}
+      },
+      "id": "16c51116-8f7f-4221-9626-5a9dc4afefde",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        160,
+        320
+      ],
+      "webhookId": "360922ac-34b9-42fe-bf27-aae53b216fec"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form Data": {
+      "main": [
+        [
+          {
+            "node": "Pipedrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipedrive": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f15211e1-96c1-4470-9afd-f21e094811f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cdbf02a9abc5c31af252fac493dde143225021d5c230099accd981962fdc06e"
+  },
+  "id": "gfKFk8dwK3SxQY6X",
+  "tags": []
+}
